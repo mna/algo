@@ -1,0 +1,8 @@
+# environment file
+.envrc
+
+# go-carpet coverage file
+go-carpet-coverage-out-*
+
+# tools output files
+*.out
