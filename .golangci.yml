@@ -25,6 +25,10 @@ linters:
     - varcheck
 
 linters-settings:
+  gosec:
+    excludes:
+      - G404
+
   revive:
     ignoreGeneratedHeader: false
     severity: "warning"

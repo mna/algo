@@ -1,6 +1,6 @@
 package search
 
-type T = int // TODO: generic type placeholder
+type T = int // NOTE: generic type placeholder
 
 // Binary performs a binary search on vals and returns the index at which v
 // was found or -1 if it is not in vals. The vals slice must already be sorted
