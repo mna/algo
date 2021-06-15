@@ -2,9 +2,12 @@ package search
 
 type T = int // TODO: generic type placeholder
 
-// Binary performs a binary search on vals and returns the index at which
-// v was found or -1 if it is not in vals. The vals slice must already be
-// sorted.
+// Binary performs a binary search on vals and returns the index at which v
+// was found or -1 if it is not in vals. The vals slice must already be sorted
+// in ascending order as defined by the standard <, == and > operators.
+//
+// It runs in O(log n) time complexity and O(1) space complexity. It does not
+// allocate.
 func Binary /*[T algo.OrderedComparable]*/ (vals []T, v T) int {
 	start, end := 0, len(vals)
 	for start < end {
@@ -32,6 +35,9 @@ func Binary /*[T algo.OrderedComparable]*/ (vals []T, v T) int {
 // sorted using the same ordering as the one reported by the cmp function. It
 // calls cmp to check ordering of pairs of values, and it should return -1 if
 // the first value is smaller, 1 if it is larger, and 0 if they are equal.
+//
+// It runs in O(log n) time complexity and O(1) space complexity. It does not
+// allocate.
 func BinaryFunc /*[T algo.Any]*/ (vals []T, v T, cmp func(T, T) int) int {
 	start, end := 0, len(vals)
 	for start < end {
