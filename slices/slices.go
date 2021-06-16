@@ -1,4 +1,4 @@
-package slice
+package slices
 
 // TODO: implement this? https://github.com/golang/go/issues/45955
 // And anything missing from this? https://github.com/golang/go/wiki/SliceTricks
