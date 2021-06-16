@@ -18,15 +18,16 @@ of those fundamental algorithms and data structures - I will take great care to
 make the code clear and well documented (the goal is not to make it as fast as
 possible at the expense of code clarity, e.g. reaching for the `unsafe` package
 is likely out of scope for this package), and will mention the Big O
-complexities, with benchmarks to back those up.
+complexities, with benchmarks to demonstrate them.
 
 That being said, please do rise an issue or send a pull request if there is an
 obvious optimization missing or if an implementation is not quite right.
 
-Once generics land officially, I will update the code to build with the proper
+Once generics land officially (I'm not interested to make this work with the
+temporary `go2go` compiler), I will update the code to build with the proper
 constraints and type arguments. For now, it is a mix of inline comments and
-type aliases to bring the syntax close to the generics one, and the generic
-`T` is aliased to `int`, e.g.:
+type aliases to bring the syntax close to the generics one, and the generic `T`
+is aliased to `int`, e.g.:
 
 ```go
 // in package search, file binary.go
