@@ -1,6 +1,9 @@
 package sort
 
 // Reverse reverses the position of the elements of the slice in-place.
+//
+// It runs in O(n) time complexity and O(1) space complexity. It does not
+// allocate.
 func Reverse /*[T algo.Any]*/ (vals []T) {
 	for i, j := 0, len(vals)-1; i < j; i, j = i+1, j-1 {
 		vals[i], vals[j] = vals[j], vals[i]
