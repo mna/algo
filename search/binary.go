@@ -21,6 +21,9 @@ func Binary /*[T algo.OrderedComparable]*/ (vals []T, v T) int {
 		if cur == v {
 			return half
 		}
+
+		// if the searched value v is larger than cur, look in the right half,
+		// otherwise look in the left half.
 		if cur < v {
 			start = half + 1
 		} else {
@@ -52,6 +55,9 @@ func BinaryFunc /*[T algo.Any]*/ (vals []T, v T, cmp func(T, T) int) int {
 		if order == 0 {
 			return half
 		}
+
+		// if the searched value v is larger than cur, look in the right half,
+		// otherwise look in the left half.
 		if order < 0 {
 			start = half + 1
 		} else {

@@ -100,8 +100,6 @@ func sortedSlice(n, mul int) []int {
 }
 
 func reverse(vals []int) []int {
-	for i, j := 0, len(vals)-1; i < j; i, j = i+1, j-1 {
-		vals[i], vals[j] = vals[j], vals[i]
-	}
+	Reverse(vals)
 	return vals
 }
