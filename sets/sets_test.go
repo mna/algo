@@ -137,6 +137,50 @@ func TestSet(t *testing.T) {
 			t.Fatalf("want %d, got %d", 0, s5.Len())
 		}
 	})
+
+	t.Run("IntersectInto", func(t *testing.T) {
+		dst := Make()
+		IntersectInto(dst)
+		if dst.Len() != 0 {
+			t.Fatalf("want %d, got %d", 0, dst.Len())
+		}
+
+		dst.Add(55)
+		IntersectInto(dst, MakeFrom(sortedSlice(2, 1)...))
+		if vals, want := dst.Values(), append([]int{55}, sortedSlice(2, 1)...); !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
+			t.Fatalf("want %v, got %v", want, vals)
+		}
+
+		dst = Make()
+		IntersectInto(dst, MakeFrom(sortedSlice(2, 1)...), MakeFrom(sortedSlice(1, 1)...))
+		if vals, want := dst.Values(), []int{1}; !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
+			t.Fatalf("want %v, got %v", want, vals)
+		}
+
+		dst = Make()
+		IntersectInto(dst, MakeFrom(sortedSlice(4, 1)...), MakeFrom(sortedSlice(3, 1)...), MakeFrom(sortedSlice(2, 1)...))
+		if vals, want := dst.Values(), []int{1, 2}; !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
+			t.Fatalf("want %v, got %v", want, vals)
+		}
+
+		dst = Make()
+		IntersectInto(dst, MakeFrom(sortedSlice(4, 1)...), MakeFrom(sortedSlice(3, 1)...), MakeFrom(sortedSlice(2, 1)...), MakeFrom(sortedSlice(1, 1)...))
+		if vals, want := dst.Values(), []int{1}; !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
+			t.Fatalf("want %v, got %v", want, vals)
+		}
+
+		dst = MakeFrom(55, 66)
+		IntersectInto(dst, MakeFrom(sortedSlice(4, 1)...), MakeFrom(sortedSlice(3, 1)...), MakeFrom(sortedSlice(2, 1)...), MakeFrom(sortedSlice(1, 1)...))
+		if vals, want := dst.Values(), []int{55, 66, 1}; !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
+			t.Fatalf("want %v, got %v", want, vals)
+		}
+
+		dst = MakeFrom(55)
+		IntersectInto(dst, MakeFrom(3, 4, 5), MakeFrom(1, 3, 4), MakeFrom(3, 4), MakeFrom(1, 2, 3, 5))
+		if vals, want := dst.Values(), []int{55, 3}; !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
+			t.Fatalf("want %v, got %v", want, vals)
+		}
+	})
 }
 
 func sortCmpSlice(i, j int) bool {

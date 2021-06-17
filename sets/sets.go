@@ -1,6 +1,9 @@
 package sets
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+)
 
 // NOTE: Set type, Make function, Add, Delete, Contains and Len methods
 // are adapted from the example sets package in the Type Parameters proposal
@@ -80,6 +83,10 @@ func (s Set /*[T]*/) Values() []T {
 // If no set is provided, it returns a nil Set. If a single Set is provided,
 // it returns a copy of that Set (that is, it always creates a new Set if
 // at least one set is provided).
+//
+// It runs in O(n^m) time complexity where n is the smallest number of values
+// in any set and m is the number of sets to intersect minus one (i.e. for
+// two sets it runs in O(n)).
 func Intersect /*[T any.Comparable]*/ (sets ...Set /*[T]*/) Set /*[T]*/ {
 	if len(sets) == 0 {
 		return nil
@@ -95,8 +102,16 @@ func Intersect /*[T any.Comparable]*/ (sets ...Set /*[T]*/) Set /*[T]*/ {
 //
 // If no set is provided for the intersection, then dst is untouched. If a single
 // set is provided, then all its values are added to dst.
+//
+// Its time complexity is the same as for Intersect.
 func IntersectInto /*[T any.Comparable]*/ (dst Set /*[T]*/, sets ...Set /*[T]*/) {
 	if len(sets) == 0 {
+		return
+	}
+	if len(sets) == 1 {
+		for k := range sets[0] {
+			dst.Add(k)
+		}
 		return
 	}
 
@@ -107,35 +122,40 @@ func IntersectInto /*[T any.Comparable]*/ (dst Set /*[T]*/, sets ...Set /*[T]*/)
 	})
 
 	// a temporary set is required as we look for values present in all sets.
-	// Create one if dst is not empty.
+	// Create one if dst is not empty, otherwise dst can be safely used as tmp.
+	// As a special-case, if there are only two sets to intersect, no need for a
+	// temporary set as we can add the intersection values directly in dst even
+	// if it is not empty - we do not need temporary storage.
 	tmp := dst
 	tmpIsDst := true
-	if len(tmp) > 0 {
+	if len(dst) > 0 && len(sets) > 2 {
 		tmpIsDst = false
 		tmp = Make /*[T]*/ ()
 	}
 
-	for i, set := range sets {
-		first, last := i == 0, i == len(sets)-1
-		if first {
-			// first set, add all its values to the tmp set
-			for k := range set {
-				// optimization - if first == last, add immediately to dst
-				if last {
-					dst.Add(k)
-				} else {
-					tmp.Add(k)
-				}
-			}
-		} else {
-			// subsequent sets, remove from tmp if it doesn't hold tmp's value
-			for k := range tmp {
-				if !set.Contains(k) {
-					tmp.Delete(k)
-				} else if last && !tmpIsDst {
-					// if this is the last set and it contains k, then insert it into dst
-					dst.Add(k)
-				}
+	// first iteration is over the values of the (smallest) first set, and if the
+	// second set contains the value, add it to tmp.
+	first, second := sets[0], sets[1]
+	for k := range first {
+		if second.Contains(k) {
+			tmp.Add(k)
+		}
+	}
+
+	// next, for all subsequent sets, loop over the values of tmp and if the set
+	// does *not* contain the value, remove it from tmp.
+	fmt.Printf(">>> before sets 2+, tmp=%v\n", tmp)
+	for i, set := range sets[2:] {
+		last := i+2 == len(sets)-1
+		fmt.Printf(">>> index %d, tmp=%v\n", i+2, tmp)
+		for k := range tmp {
+			if !set.Contains(k) {
+				tmp.Delete(k)
+			} else if last && !tmpIsDst {
+				// this condition avoids a final loop over the tmp set's values: if
+				// this is the last set to process and it contains the value, then
+				// it will need to be added to dst, so do it right away.
+				dst.Add(k)
 			}
 		}
 	}
@@ -161,9 +181,7 @@ func Union /*[T any.Comparable]*/ (sets ...Set /*[T]*/) Set /*[T]*/ {
 // UnionInto is like Union, but the union of the sets is stored in dst.  If no
 // set is provided for the union, then dst is untouched.
 //
-// It runs in O(n * m) time complexity where n is the number of values per set
-// and m is the number of sets. A more useful way to think about it may be to
-// say it runs in O(n) where n is the total number of values in all sets.
+// Its time complexity is the same as Union.
 func UnionInto /*[T any.Comparable]*/ (dst Set /*[T]*/, sets ...Set /*[T]*/) {
 	for _, set := range sets {
 		for k := range set {
