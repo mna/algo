@@ -78,6 +78,22 @@ func (s Set /*[T]*/) Values() []T {
 	return vals
 }
 
+func (s Set /*[T]*/) IsDisjoint(other Set /*[T]*/) bool {
+	panic("unimplemented")
+}
+
+func (s Set /*[T]*/) IsSubset(other Set /*[T]*/) bool {
+	panic("unimplemented")
+}
+
+func (s Set /*[T]*/) IsSuperset(other Set /*[T]*/) bool {
+	panic("unimplemented")
+}
+
+func (s Set /*[T]*/) IsStrictSuperset(other Set /*[T]*/) bool {
+	panic("unimplemented")
+}
+
 // Intersect returns a new Set that contains the intersection of all sets.
 // If no set is provided, it returns a nil Set. If a single Set is provided,
 // it returns a copy of that Set (that is, it always creates a new Set if
@@ -185,4 +201,32 @@ func UnionInto /*[T any.Comparable]*/ (dst Set /*[T]*/, sets ...Set /*[T]*/) {
 			dst.Add(k)
 		}
 	}
+}
+
+// Diff returns a new Set that is the difference of all sets, that is, the
+// values in the first set that are not in any of the other sets. If no set is
+// provided, it returns a nil Set. If a single Set is provided, it returns a
+// copy of that Set (it always creates a new Set if at least one set is
+// provided).
+func Diff /*[T any.Comparable]*/ (sets ...Set /*[T]*/) Set /*[T]*/ {
+	panic("unimplemented")
+}
+
+// DiffInto is like Diff, but the difference of the sets is stored in dst. The
+// dst set's values are not used to find the difference of values, only as
+// destination storage. If no set is provided for the difference, then dst is
+// untouched. If a single set is provided, then all its values are added to
+// dst.
+//
+// Its time complexity is the same as Diff.
+func DiffInto /*[T any.Comparable]*/ (dst Set /*[T]*/, sets ...Set /*[T]*/) {
+	panic("unimplemented")
+}
+
+func SymmetricDiff /*[T any.Comparable]*/ (s1, s2 Set /*[T]*/) Set /*[T]*/ {
+	panic("unimplemented")
+}
+
+func SymmetricDiffInto /*[T any.Comparable]*/ (dst, s1, s2 Set /*[T]*/) {
+	panic("unimplemented")
 }
