@@ -87,6 +87,48 @@ func BenchmarkBuiltinMap_Contains(b *testing.B) {
 	}
 }
 
+func BenchmarkSet_Union(b *testing.B) {
+	for _, nsets := range []int{1, 2, 3, 4, 5} {
+		for _, n := range []int{1, 10, 100, 1000, 10000, 100000, 1000000} {
+			b.Run(fmt.Sprintf("sets=%d;n=%d", nsets, n), func(b *testing.B) {
+				sets := make([]Set, nsets)
+				for i := range sets {
+					sets[i] = MakeFrom(sortedSlice((i+1)*n, 1)...)
+				}
+				b.ResetTimer()
+
+				for i := 0; i < b.N; i++ {
+					s := Union(sets...)
+					if s.Len() != nsets*n {
+						b.Fatalf("want len %d, got %d", nsets*n, s.Len())
+					}
+				}
+			})
+		}
+	}
+}
+
+func BenchmarkSet_Intersect(b *testing.B) {
+	for _, nsets := range []int{1, 2, 3, 4, 5} {
+		for _, n := range []int{1, 10, 100, 1000, 10000, 100000, 1000000} {
+			b.Run(fmt.Sprintf("sets=%d;n=%d", nsets, n), func(b *testing.B) {
+				sets := make([]Set, nsets)
+				for i := range sets {
+					sets[i] = MakeFrom(sortedSlice(n, 1)...)
+				}
+				b.ResetTimer()
+
+				for i := 0; i < b.N; i++ {
+					s := Intersect(sets...)
+					if s.Len() != n {
+						b.Fatalf("want len %d, got %d", n, s.Len())
+					}
+				}
+			})
+		}
+	}
+}
+
 // returns a slice of N valid indices into vals, to be used for benchmarks
 // where N is b.N. WARNING: that may create huge slices.
 func indicesSlice(vals []int, N int) []int {

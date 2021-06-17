@@ -83,9 +83,9 @@ func (s Set /*[T]*/) Values() []T {
 // it returns a copy of that Set (that is, it always creates a new Set if
 // at least one set is provided).
 //
-// It runs in O(n^m) time complexity where n is the smallest number of values
+// It runs in O(n*m) time complexity where n is the smallest number of values
 // in any set and m is the number of sets to intersect minus one (i.e. for
-// two sets it runs in O(n)).
+// all practical purposes where a handful of sets are provided, it runs in O(n)).
 func Intersect /*[T any.Comparable]*/ (sets ...Set /*[T]*/) Set /*[T]*/ {
 	if len(sets) == 0 {
 		return nil
@@ -167,10 +167,10 @@ func IntersectInto /*[T any.Comparable]*/ (dst Set /*[T]*/, sets ...Set /*[T]*/)
 // and m is the number of sets. A more useful way to think about it may be to
 // say it runs in O(n) where n is the total number of values in all sets.
 func Union /*[T any.Comparable]*/ (sets ...Set /*[T]*/) Set /*[T]*/ {
-	if len(sets) == 0 {
-		return nil
+	var s Set /*[T]*/
+	if len(sets) > 0 {
+		s = MakeCap(sets[0].Len())
 	}
-	s := Make /*[T]*/ ()
 	UnionInto(s, sets...)
 	return s
 }
