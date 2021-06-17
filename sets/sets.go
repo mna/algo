@@ -1,7 +1,6 @@
 package sets
 
 import (
-	"fmt"
 	"sort"
 )
 
@@ -144,10 +143,8 @@ func IntersectInto /*[T any.Comparable]*/ (dst Set /*[T]*/, sets ...Set /*[T]*/)
 
 	// next, for all subsequent sets, loop over the values of tmp and if the set
 	// does *not* contain the value, remove it from tmp.
-	fmt.Printf(">>> before sets 2+, tmp=%v\n", tmp)
 	for i, set := range sets[2:] {
 		last := i+2 == len(sets)-1
-		fmt.Printf(">>> index %d, tmp=%v\n", i+2, tmp)
 		for k := range tmp {
 			if !set.Contains(k) {
 				tmp.Delete(k)
