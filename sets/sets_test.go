@@ -7,6 +7,13 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
+type setOpCase struct {
+	desc       string
+	dstValues  []T   // if non-nil, use the Into variation with those initial values in dst
+	setsValues [][]T // values for each sets to create and pass to the operation
+	want       []T   // expected values in the resulting set
+}
+
 func TestSet(t *testing.T) {
 	t.Run("NilEmpty", func(t *testing.T) {
 		var s Set /*[int]*/
@@ -68,117 +75,82 @@ func TestSet(t *testing.T) {
 	})
 
 	t.Run("Union", func(t *testing.T) {
-		s0 := Union()
-		if s0 != nil {
-			t.Fatalf("want nil, got %v", s0)
+		cases := []setOpCase{
+			{"no set", nil, nil, nil},
+			{"empty set", nil, [][]T{{}}, nil},
+			{"single set", nil, [][]T{sortedSlice(5, 1)}, []T{1, 2, 3, 4, 5}},
+			{"two sets", nil, [][]T{sortedSlice(5, 1), sortedSlice(3, 10)}, []T{1, 2, 3, 4, 5, 10, 20, 30}},
+			{"three sets", nil, [][]T{sortedSlice(5, 1), sortedSlice(3, 10), sortedSlice(5, 10)}, []T{1, 2, 3, 4, 5, 10, 20, 30, 40, 50}},
+			{"empty dst no set", []T{}, nil, nil},
+			{"non-empty dst no set", []T{55}, nil, []T{55}},
+			{"non-empty dst, single set", []T{55}, [][]T{sortedSlice(3, 1)}, []T{1, 2, 3, 55}},
+			{"non-empty dst, two sets", []T{55}, [][]T{sortedSlice(3, 1), sortedSlice(4, 1)}, []T{1, 2, 3, 4, 55}},
+			{"non-empty dst, three sets", []T{1, 55}, [][]T{sortedSlice(3, 1), sortedSlice(4, 1), sortedSlice(1, 10)}, []T{1, 2, 3, 4, 10, 55}},
 		}
+		for _, c := range cases {
+			t.Run(c.desc, func(t *testing.T) {
+				sets := make([]Set /*[T]*/, len(c.setsValues))
+				for i, vals := range c.setsValues {
+					sets[i] = MakeFrom(vals...)
+				}
 
-		vals1 := sortedSlice(5, 1)
-		s1 := Union(MakeFrom(vals1...))
-		if s1vals, want := s1.Values(), sortedSlice(5, 1); !cmp.Equal(s1vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, s1vals)
-		}
+				var got Set /*[T]*/
+				if c.dstValues != nil {
+					got = MakeFrom(c.dstValues...)
+					UnionInto(got, sets...)
+				} else {
+					got = Union(sets...)
+				}
 
-		vals2 := sortedSlice(3, 10)
-		s2 := Union(MakeFrom(vals1...), MakeFrom(vals2...))
-		if s2vals, want := s2.Values(), append(vals1, vals2...); !cmp.Equal(s2vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, s2vals)
-		}
-
-		vals3 := sortedSlice(5, 10)
-		s3 := Union(MakeFrom(vals1...), MakeFrom(vals2...), MakeFrom(vals3...))
-		if s3vals, want := s3.Values(), append(vals1, vals3...); !cmp.Equal(s3vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, s3vals)
-		}
-	})
-
-	t.Run("UnionInto", func(t *testing.T) {
-		dst := Make()
-		UnionInto(dst)
-		if dst.Len() != 0 {
-			t.Fatalf("want %d, got %d", 0, dst.Len())
-		}
-
-		dst.Add(55)
-		UnionInto(dst, MakeFrom(sortedSlice(2, 1)...))
-		if vals, want := dst.Values(), append([]int{55}, sortedSlice(2, 1)...); !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, vals)
+				if vals := got.Values(); !cmp.Equal(vals, c.want, cmpopts.SortSlices(sortCmpSlice)) {
+					t.Fatalf("want %v, got %v", c.want, vals)
+				}
+			})
 		}
 	})
 
 	t.Run("Intersect", func(t *testing.T) {
-		s0 := Intersect()
-		if s0 != nil {
-			t.Fatalf("want nil, got %v", s0)
+		cases := []setOpCase{
+			{"no set", nil, nil, nil},
+			{"empty set", nil, [][]T{{}}, nil},
+			{"single set", nil, [][]T{sortedSlice(3, 1)}, []T{1, 2, 3}},
+			{"two sets", nil, [][]T{sortedSlice(3, 1), sortedSlice(5, 1)}, []T{1, 2, 3}},
+			{"two sets no overlap", nil, [][]T{sortedSlice(3, 1), sortedSlice(2, 10)}, nil},
+			{"three sets", nil, [][]T{sortedSlice(3, 1), sortedSlice(2, 1), sortedSlice(1, 1)}, []T{1}},
+			{"four sets", nil, [][]T{sortedSlice(4, 1), sortedSlice(3, 1), sortedSlice(2, 1), sortedSlice(1, 1)}, []T{1}},
+			{"four sets varied content", nil, [][]T{{1, 3, 4}, {3, 4}, {3, 4, 5}, {1, 2, 3, 5}}, []T{3}},
+			{"empty dst no set", []T{}, nil, nil},
+			{"empty dst single set", []T{}, [][]T{sortedSlice(2, 1)}, []T{1, 2}},
+			{"empty dst two sets", []T{}, [][]T{sortedSlice(2, 1), sortedSlice(1, 1)}, []T{1}},
+			{"empty dst three sets", []T{}, [][]T{sortedSlice(3, 1), sortedSlice(2, 1), sortedSlice(1, 1)}, []T{1}},
+			{"empty dst four sets", []T{}, [][]T{sortedSlice(4, 1), sortedSlice(3, 1), sortedSlice(2, 1), sortedSlice(1, 1)}, []T{1}},
+			{"non-empty dst no set", []T{55}, nil, []T{55}},
+			{"non-empty dst single set", []T{55}, [][]T{sortedSlice(3, 1)}, []T{55, 1, 2, 3}},
+			{"non-empty dst two sets", []T{55}, [][]T{sortedSlice(3, 1), sortedSlice(2, 1)}, []T{55, 1, 2}},
+			{"non-empty dst three sets", []T{55}, [][]T{sortedSlice(3, 1), sortedSlice(2, 1), sortedSlice(1, 1)}, []T{1, 55}},
+			{"non-empty dst four sets", []T{55}, [][]T{sortedSlice(4, 1), sortedSlice(3, 1), sortedSlice(2, 1), sortedSlice(1, 1)}, []T{1, 55}},
+			{"non-empty dst overlaps four sets", []T{4, 55}, [][]T{sortedSlice(4, 1), sortedSlice(3, 1), sortedSlice(2, 1), sortedSlice(1, 1)}, []T{1, 4, 55}},
+			{"non-empty dst four sets varied content", []T{55}, [][]T{{1, 3, 4}, {3, 4}, {3, 4, 5}, {1, 2, 3, 5}}, []T{3, 55}},
 		}
+		for _, c := range cases {
+			t.Run(c.desc, func(t *testing.T) {
+				sets := make([]Set /*[T]*/, len(c.setsValues))
+				for i, vals := range c.setsValues {
+					sets[i] = MakeFrom(vals...)
+				}
 
-		s1 := Intersect(Make())
-		if s1.Len() != 0 {
-			t.Fatalf("want %d, got %d", 0, s1.Len())
-		}
+				var got Set /*[T]*/
+				if c.dstValues != nil {
+					got = MakeFrom(c.dstValues...)
+					IntersectInto(got, sets...)
+				} else {
+					got = Intersect(sets...)
+				}
 
-		s2 := Intersect(MakeFrom(sortedSlice(3, 1)...))
-		if vals, want := s2.Values(), sortedSlice(3, 1); !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, vals)
-		}
-
-		s3 := Intersect(MakeFrom(sortedSlice(3, 1)...), MakeFrom(sortedSlice(5, 1)...))
-		if vals, want := s3.Values(), sortedSlice(3, 1); !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, vals)
-		}
-
-		s4 := Intersect(MakeFrom(sortedSlice(3, 1)...), MakeFrom(sortedSlice(2, 1)...), MakeFrom(sortedSlice(1, 1)...))
-		if vals, want := s4.Values(), []int{1}; !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, vals)
-		}
-
-		s5 := Intersect(MakeFrom(sortedSlice(3, 1)...), MakeFrom(sortedSlice(2, 10)...))
-		if s5.Len() != 0 {
-			t.Fatalf("want %d, got %d", 0, s5.Len())
-		}
-	})
-
-	t.Run("IntersectInto", func(t *testing.T) {
-		dst := Make()
-		IntersectInto(dst)
-		if dst.Len() != 0 {
-			t.Fatalf("want %d, got %d", 0, dst.Len())
-		}
-
-		dst.Add(55)
-		IntersectInto(dst, MakeFrom(sortedSlice(2, 1)...))
-		if vals, want := dst.Values(), append([]int{55}, sortedSlice(2, 1)...); !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, vals)
-		}
-
-		dst = Make()
-		IntersectInto(dst, MakeFrom(sortedSlice(2, 1)...), MakeFrom(sortedSlice(1, 1)...))
-		if vals, want := dst.Values(), []int{1}; !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, vals)
-		}
-
-		dst = Make()
-		IntersectInto(dst, MakeFrom(sortedSlice(4, 1)...), MakeFrom(sortedSlice(3, 1)...), MakeFrom(sortedSlice(2, 1)...))
-		if vals, want := dst.Values(), []int{1, 2}; !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, vals)
-		}
-
-		dst = Make()
-		IntersectInto(dst, MakeFrom(sortedSlice(4, 1)...), MakeFrom(sortedSlice(3, 1)...), MakeFrom(sortedSlice(2, 1)...), MakeFrom(sortedSlice(1, 1)...))
-		if vals, want := dst.Values(), []int{1}; !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, vals)
-		}
-
-		dst = MakeFrom(55, 66)
-		IntersectInto(dst, MakeFrom(sortedSlice(4, 1)...), MakeFrom(sortedSlice(3, 1)...), MakeFrom(sortedSlice(2, 1)...), MakeFrom(sortedSlice(1, 1)...))
-		if vals, want := dst.Values(), []int{55, 66, 1}; !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, vals)
-		}
-
-		dst = MakeFrom(55)
-		IntersectInto(dst, MakeFrom(3, 4, 5), MakeFrom(1, 3, 4), MakeFrom(3, 4), MakeFrom(1, 2, 3, 5))
-		if vals, want := dst.Values(), []int{55, 3}; !cmp.Equal(vals, want, cmpopts.SortSlices(sortCmpSlice)) {
-			t.Fatalf("want %v, got %v", want, vals)
+				if vals := got.Values(); !cmp.Equal(vals, c.want, cmpopts.SortSlices(sortCmpSlice)) {
+					t.Fatalf("want %v, got %v", c.want, vals)
+				}
+			})
 		}
 	})
 }

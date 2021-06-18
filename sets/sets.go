@@ -71,9 +71,13 @@ func (s Set /*[T]*/) Len() int {
 //
 // It runs in O(n) time complexity where n is the number of values in the set.
 func (s Set /*[T]*/) Values() []T {
-	vals := make([]T, 0, len(s))
-	for k := range s {
-		vals = append(vals, k)
+	var vals []T
+
+	if len(s) > 0 {
+		vals = make([]T, 0, len(s))
+		for k := range s {
+			vals = append(vals, k)
+		}
 	}
 	return vals
 }
