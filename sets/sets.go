@@ -208,8 +208,17 @@ func UnionInto /*[T any.Comparable]*/ (dst Set /*[T]*/, sets ...Set /*[T]*/) {
 // provided, it returns a nil Set. If a single Set is provided, it returns a
 // copy of that Set (it always creates a new Set if at least one set is
 // provided).
+//
+// It runs in O(n*m) time complexity where n is the number of values of the
+// first set and m is the number of sets to diff minus one (i.e. for all
+// practical purposes where a handful of sets are provided, it runs in O(n)).
 func Diff /*[T any.Comparable]*/ (sets ...Set /*[T]*/) Set /*[T]*/ {
-	panic("unimplemented")
+	if len(sets) == 0 {
+		return nil
+	}
+	s := Make /*[T]*/ ()
+	DiffInto(s, sets...)
+	return s
 }
 
 // DiffInto is like Diff, but the difference of the sets is stored in dst. The
@@ -220,7 +229,52 @@ func Diff /*[T any.Comparable]*/ (sets ...Set /*[T]*/) Set /*[T]*/ {
 //
 // Its time complexity is the same as Diff.
 func DiffInto /*[T any.Comparable]*/ (dst Set /*[T]*/, sets ...Set /*[T]*/) {
-	panic("unimplemented")
+	if len(sets) == 0 {
+		return
+	}
+	if len(sets) == 1 {
+		for k := range sets[0] {
+			dst.Add(k)
+		}
+		return
+	}
+
+	// a temporary set is required as we look for the difference.  Create one if
+	// dst is not empty, otherwise dst can be safely used as tmp.  As a
+	// special-case, if there are only two sets to diff, no need for a temporary
+	// set as we can add the diff values directly in dst even if it is not empty
+	// - we do not need temporary storage.
+	tmp := dst
+	tmpIsDst := true
+	if len(dst) > 0 && len(sets) > 2 {
+		tmpIsDst = false
+		tmp = Make /*[T]*/ ()
+	}
+
+	// first iteration is over the values of the first set, and if the second set
+	// does not contain the value, add it to tmp.
+	first, second := sets[0], sets[1]
+	for k := range first {
+		if !second.Contains(k) {
+			tmp.Add(k)
+		}
+	}
+
+	// next, for all subsequent sets, loop over the values of tmp and if the set
+	// *does* contain the value, remove it from tmp.
+	for i, set := range sets[2:] {
+		last := i+2 == len(sets)-1
+		for k := range tmp {
+			if set.Contains(k) {
+				tmp.Delete(k)
+			} else if last && !tmpIsDst {
+				// this condition avoids a final loop over the tmp set's values: if
+				// this is the last set to process and it does not contain the value,
+				// then it will need to be added to dst, so do it right away.
+				dst.Add(k)
+			}
+		}
+	}
 }
 
 func SymmetricDiff /*[T any.Comparable]*/ (s1, s2 Set /*[T]*/) Set /*[T]*/ {
