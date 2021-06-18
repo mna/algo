@@ -82,20 +82,59 @@ func (s Set /*[T]*/) Values() []T {
 	return vals
 }
 
+// IsDisjoint returns true if the intersection of s and other is an empty
+// set, false otherwise.
+//
+// It runs in O(n) time complexity where n is the number of values in the
+// smallest set between s and other.
 func (s Set /*[T]*/) IsDisjoint(other Set /*[T]*/) bool {
-	panic("unimplemented")
+	iter, cmp := s, other
+	if other.Len() < s.Len() {
+		iter, cmp = other, s
+	}
+	for k := range iter {
+		if cmp.Contains(k) {
+			return false
+		}
+	}
+	return true
 }
 
-func (s Set /*[T]*/) IsSubset(other Set /*[T]*/) bool {
-	panic("unimplemented")
+// IsSubset returns true if every value of s is in other, false otherwise.  If
+// strict is true and s contains the same values as other, then it returns
+// false.
+//
+// It runs in O(n) time complexity where n is the number of values in s.
+func (s Set /*[T]*/) IsSubset(other Set /*[T]*/, strict bool) bool {
+	if s.Len() <= other.Len() || (strict && s.Len() < other.Len()) {
+		for k := range s {
+			if !other.Contains(k) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
 
-func (s Set /*[T]*/) IsSuperset(other Set /*[T]*/) bool {
-	panic("unimplemented")
+// IsSuperset returns true if every value of other is in s, false otherwise.
+// If strict is true and other contains the same values as s, then it returns
+// false.
+//
+// It runs in O(n) time complexity where n is the number of values in other.
+func (s Set /*[T]*/) IsSuperset(other Set /*[T]*/, strict bool) bool {
+	return other.IsSubset(s, strict)
 }
 
-func (s Set /*[T]*/) IsStrictSuperset(other Set /*[T]*/) bool {
-	panic("unimplemented")
+// IsEqual returns true if s contains the same values as other, false
+// otherwise.
+//
+// It runs in O(n) time complexity where n is the number of values in s.
+func (s Set /*[T]*/) IsEqual(other Set) bool {
+	if s.Len() != other.Len() {
+		return false
+	}
+	return s.IsSubset(other, false)
 }
 
 // Intersect returns a new Set that contains the intersection of all sets.
