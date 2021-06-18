@@ -281,10 +281,64 @@ func DiffInto /*[T any.Comparable]*/ (dst Set /*[T]*/, sets ...Set /*[T]*/) {
 	}
 }
 
-func SymmetricDiff /*[T any.Comparable]*/ (s1, s2 Set /*[T]*/) Set /*[T]*/ {
-	panic("unimplemented")
+// SymmetricDiff returns a new Set that contains values that are in either of
+// the sets but not in any other. If no set is provided, it returns a nil Set.
+// If a single Set is provided, it returns a copy of that Set (it always
+// creates a new Set if at least one set is provided).
+//
+// It runs in O(n*m) time complexity where n is the number of values in each
+// set and m is the number of sets (i.e. for all practical purposes where a
+// handful of sets are provided, it runs in O(n)).
+func SymmetricDiff /*[T any.Comparable]*/ (sets ...Set /*[T]*/) Set /*[T]*/ {
+	if len(sets) == 0 {
+		return nil
+	}
+	s := Make /*[T]*/ ()
+	SymmetricDiffInto(s, sets...)
+	return s
 }
 
-func SymmetricDiffInto /*[T any.Comparable]*/ (dst, s1, s2 Set /*[T]*/) {
-	panic("unimplemented")
+// SymmetricDiffInto is like SymmetricDiff, but the resulting values are
+// stored in dst. The dst set's values are not used to find the symmetric
+// difference, only as destination storage. If no set is provided for the
+// symmetric difference, then dst is untouched. If a single set is provided,
+// then all its values are added to dst.
+//
+// Its time complexity is the same as SymmetricDiff.
+func SymmetricDiffInto /*[T any.Comparable]*/ (dst Set /*[T]*/, sets ...Set /*[T]*/) {
+	if len(sets) == 0 {
+		return
+	}
+	if len(sets) == 1 {
+		for k := range sets[0] {
+			dst.Add(k)
+		}
+		return
+	}
+
+	// a temporary map is required as we look for the symmetric difference.  It
+	// will keep track of which values are still in the final set (value=true)
+	// and which values have been seen in more than one set, so should not be in
+	// the final set (value=false).
+	tmp := make(map[T]bool, len(sets[0]))
+
+	// loop over the values of each set in sequence and if the value is not in
+	// tmp, add it, and if it is in tmp, remove it.
+	for _, set := range sets {
+		for k := range set {
+			contains, exists := tmp[k]
+			if contains {
+				tmp[k] = false
+			} else if !exists {
+				tmp[k] = true
+			}
+		}
+	}
+
+	// copy all values from tmp to dst
+	for k, ok := range tmp {
+		if ok {
+			dst.Add(k)
+		}
+	}
 }
