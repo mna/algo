@@ -153,6 +153,52 @@ func TestSet(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("Diff", func(t *testing.T) {
+		cases := []setOpCase{
+			{"no set", nil, nil, nil},
+			{"empty set", nil, [][]T{{}}, nil},
+			{"single set", nil, [][]T{sortedSlice(3, 1)}, []T{1, 2, 3}},
+			{"two sets none", nil, [][]T{sortedSlice(3, 1), sortedSlice(5, 1)}, nil},
+			{"two sets some", nil, [][]T{sortedSlice(5, 1), sortedSlice(3, 1)}, []T{4, 5}},
+			{"two sets no overlap", nil, [][]T{sortedSlice(3, 1), sortedSlice(2, 10)}, []T{1, 2, 3}},
+			{"three sets", nil, [][]T{sortedSlice(3, 1), sortedSlice(2, 1), sortedSlice(1, 1)}, []T{3}},
+			{"four sets", nil, [][]T{sortedSlice(4, 1), sortedSlice(3, 1), sortedSlice(2, 1), sortedSlice(1, 1)}, []T{4}},
+			{"four sets varied content", nil, [][]T{{1, 3, 4, 6}, {3, 4}, {3, 4, 5}, {2, 3, 6}}, []T{1}},
+			{"empty dst no set", []T{}, nil, nil},
+			{"empty dst single set", []T{}, [][]T{sortedSlice(2, 1)}, []T{1, 2}},
+			{"empty dst two sets", []T{}, [][]T{sortedSlice(2, 1), sortedSlice(1, 1)}, []T{2}},
+			{"empty dst three sets", []T{}, [][]T{sortedSlice(3, 1), sortedSlice(2, 1), sortedSlice(1, 1)}, []T{3}},
+			{"empty dst four sets", []T{}, [][]T{sortedSlice(4, 1), sortedSlice(1, 1), sortedSlice(2, 1), sortedSlice(3, 1)}, []T{4}},
+			{"non-empty dst no set", []T{55}, nil, []T{55}},
+			{"non-empty dst single set", []T{55}, [][]T{sortedSlice(3, 1)}, []T{55, 1, 2, 3}},
+			{"non-empty dst two sets", []T{55}, [][]T{sortedSlice(3, 1), sortedSlice(2, 1)}, []T{55, 3}},
+			{"non-empty dst three sets", []T{55}, [][]T{sortedSlice(3, 1), sortedSlice(1, 1), sortedSlice(2, 1)}, []T{3, 55}},
+			{"non-empty dst four sets", []T{55}, [][]T{sortedSlice(4, 1), sortedSlice(2, 1), sortedSlice(1, 1), sortedSlice(3, 1)}, []T{4, 55}},
+			{"non-empty dst overlaps four sets", []T{4, 55}, [][]T{sortedSlice(4, 1), sortedSlice(3, 1), sortedSlice(2, 1), sortedSlice(1, 1)}, []T{4, 55}},
+			{"non-empty dst four sets varied content", []T{55}, [][]T{{1, 3, 4}, {3, 5}, {3, 4, 5}, {2, 3, 5}}, []T{1, 55}},
+		}
+		for _, c := range cases {
+			t.Run(c.desc, func(t *testing.T) {
+				sets := make([]Set /*[T]*/, len(c.setsValues))
+				for i, vals := range c.setsValues {
+					sets[i] = MakeFrom(vals...)
+				}
+
+				var got Set /*[T]*/
+				if c.dstValues != nil {
+					got = MakeFrom(c.dstValues...)
+					DiffInto(got, sets...)
+				} else {
+					got = Diff(sets...)
+				}
+
+				if vals := got.Values(); !cmp.Equal(vals, c.want, cmpopts.SortSlices(sortCmpSlice)) {
+					t.Fatalf("want %v, got %v", c.want, vals)
+				}
+			})
+		}
+	})
 }
 
 func sortCmpSlice(i, j int) bool {
