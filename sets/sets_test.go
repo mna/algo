@@ -1,6 +1,7 @@
 package sets
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -251,10 +252,55 @@ func sortCmpSlice(i, j int) bool {
 	return i < j
 }
 
-func sortedSlice(n, mul int) []int {
+func TestSortedSlice(t *testing.T) {
+	cases := []struct {
+		ns   []int
+		want []int
+	}{
+		{nil, []int{}},
+		{[]int{1}, []int{1}},
+		{[]int{2}, []int{1, 2}},
+		{[]int{3}, []int{1, 2, 3}},
+		{[]int{1, 10}, []int{10}},
+		{[]int{2, 10}, []int{10, 20}},
+		{[]int{3, 10}, []int{10, 20, 30}},
+		{[]int{1, 10, 2}, []int{20}},
+		{[]int{2, 10, 2}, []int{20, 30}},
+		{[]int{3, 10, 2}, []int{20, 30, 40}},
+		{[]int{1, 1, 4}, []int{4}},
+		{[]int{2, 1, 4}, []int{4, 5}},
+		{[]int{3, 1, 4}, []int{4, 5, 6}},
+	}
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("%v", c.ns), func(t *testing.T) {
+			got := sortedSlice(c.ns...)
+			if !cmp.Equal(got, c.want, cmpopts.SortSlices(sortCmpSlice)) {
+				t.Fatalf("want %v, got %v", c.want, got)
+			}
+		})
+	}
+}
+
+// ns control the slice's creation:
+// ns[0] = how many items, default 0
+// ns[1] = multiplier, default 1
+// ns[2] = value starts at (before multiplier is applied), default 1
+func sortedSlice(ns ...int) []int {
+	n, mul, start := 0, 1, 1
+	if len(ns) > 0 {
+		n = ns[0]
+	}
+	if len(ns) > 1 {
+		mul = ns[1]
+	}
+	if len(ns) > 2 {
+		start = ns[2]
+	}
+
 	vals := make([]int, n)
 	for i := 0; i < n; i++ {
-		vals[i] = (i + 1) * mul
+		vals[i] = start * mul
+		start++
 	}
 	return vals
 }
