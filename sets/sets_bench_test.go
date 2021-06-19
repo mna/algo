@@ -171,6 +171,70 @@ func BenchmarkSet_SymmetricDiff(b *testing.B) {
 	}
 }
 
+func BenchmarkSet_IsSubset(b *testing.B) {
+	for _, n := range []int{1, 10, 100, 1000, 10000, 100000, 1000000} {
+		b.Run(fmt.Sprintf("n=%d", n), func(b *testing.B) {
+			vals := sortedSlice(n, 1)
+			s1, s2 := MakeFrom(vals...), MakeFrom(vals...)
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				if !s1.IsSubset(s2, false) {
+					b.Fatal("want is subset to return true")
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkSet_IsSuperset(b *testing.B) {
+	for _, n := range []int{1, 10, 100, 1000, 10000, 100000, 1000000} {
+		b.Run(fmt.Sprintf("n=%d", n), func(b *testing.B) {
+			vals := sortedSlice(n, 1)
+			s1, s2 := MakeFrom(vals...), MakeFrom(vals...)
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				if !s1.IsSuperset(s2, false) {
+					b.Fatal("want is superset to return true")
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkSet_IsDisjoint(b *testing.B) {
+	for _, n := range []int{1, 10, 100, 1000, 10000, 100000, 1000000} {
+		b.Run(fmt.Sprintf("n=%d", n), func(b *testing.B) {
+			v1, v2 := sortedSlice(n, 1), sortedSlice(n, 1, (2*n)+1)
+			s1, s2 := MakeFrom(v1...), MakeFrom(v2...)
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				if !s1.IsDisjoint(s2) {
+					b.Fatal("want is disjoint to return true")
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkSet_IsEqual(b *testing.B) {
+	for _, n := range []int{1, 10, 100, 1000, 10000, 100000, 1000000} {
+		b.Run(fmt.Sprintf("n=%d", n), func(b *testing.B) {
+			vals := sortedSlice(n, 1)
+			s1, s2 := MakeFrom(vals...), MakeFrom(vals...)
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				if !s1.IsEqual(s2) {
+					b.Fatal("want is equal to return true")
+				}
+			}
+		})
+	}
+}
+
 // returns a slice of N valid indices into vals, to be used for benchmarks
 // where N is b.N. WARNING: that may create huge slices.
 func indicesSlice(vals []int, N int) []int {
