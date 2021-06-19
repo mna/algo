@@ -106,7 +106,7 @@ func (s Set /*[T]*/) IsDisjoint(other Set /*[T]*/) bool {
 //
 // It runs in O(n) time complexity where n is the number of values in s.
 func (s Set /*[T]*/) IsSubset(other Set /*[T]*/, strict bool) bool {
-	if s.Len() <= other.Len() || (strict && s.Len() < other.Len()) {
+	if (!strict && s.Len() <= other.Len()) || (strict && s.Len() < other.Len()) {
 		for k := range s {
 			if !other.Contains(k) {
 				return false

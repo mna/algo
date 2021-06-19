@@ -246,6 +246,68 @@ func TestSet(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("IsDisjointSubsetSupersetEqual", func(t *testing.T) {
+		cases := []struct {
+			vals1    []T
+			vals2    []T
+			disjoint bool
+			subset   bool
+			strict   bool
+		}{
+			{nil, nil, true, true, false},
+			{nil, []T{1}, true, true, true},
+			{[]T{1}, []T{1}, false, true, false},
+			{[]T{1}, []T{1, 2}, false, true, true},
+			{[]T{3, 4}, []T{1, 2}, true, false, false},
+			{[]T{1, 2, 3, 4}, []T{1, 2, 4, 5}, false, false, false},
+		}
+		for _, c := range cases {
+			t.Run(fmt.Sprintf("%v<=>%v", c.vals1, c.vals2), func(t *testing.T) {
+				s1, s2 := MakeFrom(c.vals1...), MakeFrom(c.vals2...)
+
+				dis1 := s1.IsDisjoint(s2)
+				dis2 := s2.IsDisjoint(s1)
+				if dis1 != dis2 {
+					t.Fatalf("disjoint symmetric property does not hold: %t, %t", dis1, dis2)
+				}
+				if dis1 != c.disjoint {
+					t.Fatalf("want disjoint %t, got %t", c.disjoint, dis1)
+				}
+
+				sub, substr := s1.IsSubset(s2, false), s1.IsSubset(s2, true)
+				if substr && !sub {
+					t.Fatal("strict subset is not reported as loose subset")
+				}
+				if c.subset != sub {
+					t.Fatalf("want subset %t, got %t", c.subset, sub)
+				}
+				if (c.subset && c.strict) != substr {
+					t.Fatalf("want strict subset %t, got %t", c.subset && c.strict, substr)
+				}
+
+				sup, supstr := s2.IsSuperset(s1, false), s2.IsSuperset(s1, true)
+				if supstr && !sup {
+					t.Fatal("strict superset is not reported as loose superset")
+				}
+				if c.subset != sup {
+					t.Fatalf("want superset %t, got %t", c.subset, sup)
+				}
+				if (c.subset && c.strict) != supstr {
+					t.Fatalf("want strict superset %t, got %t", c.subset && c.strict, supstr)
+				}
+
+				wantEq := c.subset && !c.strict
+				eq1, eq2 := s1.IsEqual(s2), s2.IsEqual(s1)
+				if eq1 != eq2 {
+					t.Fatalf("equal symmetric property does not hold: %t, %t", eq1, eq2)
+				}
+				if wantEq != eq1 {
+					t.Fatalf("want equal %t, got %t", wantEq, eq1)
+				}
+			})
+		}
+	})
 }
 
 func sortCmpSlice(i, j int) bool {
