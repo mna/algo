@@ -55,3 +55,16 @@ func (s *Stack /*[T]*/) Pop() T {
 	}
 	return v
 }
+
+// Peek returns the item at the top of the stack (the last one added) without
+// removing it from the stack. If the stack is empty, it returns the zero value
+// of T. Len can be used to check if there are values to peek.
+//
+// It runs in O(1) time and space complexity. It does not allocate.
+func (s *Stack /*[T]*/) Peek() T {
+	var v T
+	if n := len(s.items); n > 0 {
+		v = s.items[n-1]
+	}
+	return v
+}

@@ -34,12 +34,15 @@ func TestStack(t *testing.T) {
 			t.Fatalf("want empty pop %d, got %d", 0, v)
 		}
 		s.Push(1)
+		if got := s.Peek(); got != 1 {
+			t.Fatalf("want %d, got %d", 1, got)
+		}
 		if got := s.Pop(); got != 1 {
 			t.Fatalf("want %d, got %d", 1, got)
 		}
 	})
 
-	t.Run("PushPop", func(t *testing.T) {
+	t.Run("PushPeekPop", func(t *testing.T) {
 		cases := [][]T{
 			sortedSlice(1),
 			sortedSlice(2),
@@ -59,6 +62,7 @@ func TestStack(t *testing.T) {
 			t.Run(fmt.Sprintf("%d", len(c)), func(t *testing.T) {
 				got := make([]T, 0, len(c))
 				s := MakeFrom(c...)
+				peek := s.Peek()
 				for s.Len() > 0 {
 					got = append(got, s.Pop())
 				}
@@ -66,6 +70,9 @@ func TestStack(t *testing.T) {
 				sort.Reverse(c)
 				if !cmp.Equal(c, got) {
 					t.Fatalf("want %v, got %v", c, got)
+				}
+				if peek != got[0] {
+					t.Fatalf("want peek %d, got %d", got[0], peek)
 				}
 			})
 		}
