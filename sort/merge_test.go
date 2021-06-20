@@ -30,6 +30,8 @@ func TestMerge(t *testing.T) {
 		{shuffledSlice(r, sortedSlice(9, 1)), sortedSlice(9, 1)},
 		{shuffledSlice(r, sortedSlice(10, 1)), sortedSlice(10, 1)},
 		{shuffledSlice(r, sortedSlice(10, 10)), sortedSlice(10, 10)},
+		{[]int{1, 2, 3, 1, 2, 3, 1}, []int{1, 1, 1, 2, 2, 3, 3}},
+		{[]int{1, 1}, []int{1, 1}},
 	}
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("%v", c.in), func(t *testing.T) {
@@ -73,6 +75,8 @@ func TestMergeFunc(t *testing.T) {
 		{shuffledSlice(r, sortedSlice(9, 1)), reverse(sortedSlice(9, 1))},
 		{shuffledSlice(r, sortedSlice(10, 1)), reverse(sortedSlice(10, 1))},
 		{shuffledSlice(r, sortedSlice(10, 10)), reverse(sortedSlice(10, 10))},
+		{[]int{1, 2, 3, 1, 2, 3, 1}, []int{3, 3, 2, 2, 1, 1, 1}},
+		{[]int{1, 1}, []int{1, 1}},
 	}
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("%v", c.in), func(t *testing.T) {
