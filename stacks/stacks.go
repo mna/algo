@@ -3,7 +3,7 @@ package stacks
 type T = int // NOTE: generic type placeholder
 
 // Stack is a stack data structure, implementing a last-in-first-out (LIFO)
-// insertion and retrieval mechanism.
+// insertion and retrieval mechanism. Its zero-value is ready to use.
 type Stack /*[T algo.Any]*/ struct {
 	items []T
 }

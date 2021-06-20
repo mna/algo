@@ -25,6 +25,20 @@ func TestStack(t *testing.T) {
 		}
 	})
 
+	t.Run("ZeroValue", func(t *testing.T) {
+		var s Stack
+		if s.Len() != 0 {
+			t.Fatalf("want len %d, got %d", 0, s.Len())
+		}
+		if v := s.Pop(); v != 0 {
+			t.Fatalf("want empty pop %d, got %d", 0, v)
+		}
+		s.Push(1)
+		if got := s.Pop(); got != 1 {
+			t.Fatalf("want %d, got %d", 1, got)
+		}
+	})
+
 	t.Run("PushPop", func(t *testing.T) {
 		cases := [][]T{
 			sortedSlice(1),

@@ -2,7 +2,9 @@ package sort
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -22,6 +24,29 @@ func TestReverse(t *testing.T) {
 			Reverse(c.in)
 			if !cmp.Equal(c.in, c.out) {
 				t.Fatalf("want %v, got %v", c.out, c.in)
+			}
+		})
+	}
+}
+
+func TestShuffle(t *testing.T) {
+	cases := [][]int{
+		nil,
+		{1},
+		{1, 2},
+		{3, 2, 1},
+	}
+
+	seed := time.Now().UnixNano()
+	t.Logf("random seed: %d", seed)
+	r := rand.New(rand.NewSource(seed))
+
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("%v", c), func(t *testing.T) {
+			n := len(c)
+			Shuffle(r, c)
+			if len(c) != n {
+				t.Fatalf("want %d elements, got %d", n, len(c))
 			}
 		})
 	}
