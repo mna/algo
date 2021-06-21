@@ -60,3 +60,16 @@ func (q *Queue /*[T]*/) Dequeue() T {
 	}
 	return v
 }
+
+// Peek returns the item at the front of the queue (the first one added)
+// without removing it from the queue. If the queue is empty, it returns the
+// zero value of T. Len can be used to check if there are values to peek.
+//
+// It runs in O(1) time and space complexity. It does not allocate.
+func (q *Queue /*[T]*/) Peek() T {
+	var v T
+	if len(q.items) > 0 {
+		v = q.items[0]
+	}
+	return v
+}
